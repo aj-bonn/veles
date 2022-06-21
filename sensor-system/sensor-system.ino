@@ -10,7 +10,9 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature temp_sensor(&oneWire);
 DeviceAddress insideThermometer;
 
+//Plant Info
 String name = "Hugo";
+int pnum = 10;
 
 // Prototypes
 void print_Temp(DeviceAddress addy);
@@ -22,7 +24,14 @@ void setup() {
 }
 
 void loop() {
-  // Prints all data in a single line
+  // PLANT INFO
+  Serial.print(name);
+  Serial.print("\t");
+  Serial.print(pnum);
+  Serial.print("\t");
+  // Take time using Python
+  
+  // SENSOR DATA
   Serial.print(analogRead(A0)); // Capacitance
   Serial.print("\t");
   Serial.print(analogRead(A1)); // Resistance
@@ -30,9 +39,12 @@ void loop() {
   temp_sensor.requestTemperatures();
   Serial.print(temp_sensor.getTempCByIndex(0)); // Temperature in Celsius
   Serial.println((temp_sensor.getTempCByIndex(0) * 9.0) / 5.0 + 32.0); // Temperature in Fahrenheit
+  
+  // Takes data every 1/2 hour
   delay(1800000);
-  // Question is should the delay be here or in the Python file??? Both?
-  /*
+  // Question is should the delay be here or in the Python file??? Both? A: Here
+  
+  /* Prev. ver. 
   Serial.print("Capacitance: ");
   Serial.println(analogRead(A0));
   Serial.print("Resistance: ");
