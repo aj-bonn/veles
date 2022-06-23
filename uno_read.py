@@ -4,8 +4,8 @@ from datetime import datetime
 
 
 # Arduino Variables
-ha_ard = serial.Serial(port = '/dev/cu.usbmodem1301', baudrate = 9600,
-timeout = 0.1) # Arduino 1
+# ha_ard = serial.Serial(port = '/dev/cu.usbmodem1301', baudrate = 9600,
+# timeout = 0.1) # Arduino 1
 # hu_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 2
 # so_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 3
 # si_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 4
@@ -16,83 +16,110 @@ fOveride = 0;
 ################################################################################
 
 def main():
-    print("Ran code")
+    print("<main> : Ran code")
 
 ################################################################################
 
 def setup_db():
-    ''' ESTABLISHING CONNECTION '''
-    conn = sqlite3.connect("veles_data.db")
-    curs = conn.cursor()
+    try:
+        ''' SQLite3 CONNECTION '''
+        conn = sqlite3.connect("veles_data.db")
+        curs = conn.cursor()
+        print("<setup_db> : Attempting connection to SQLite3...")
 
-    ''' CREATING TABLE '''
-    # Get rid of possible duplicate
-    while fOveride is 1:
-        reset = input("Table already created... Overide? (Y/n)")
-        print(reset)
-        reset.lower()
-        if reset is "y":
-            fOveride = 0
-            curs.execute("DROP TABLE IF EXISTS VELES_DATA")
-        elif reset not "n":
-            print("ERROR: Improper input...")
-        else:
-            return
+        ''' CREATING TABLE '''
+        # Get rid of possible duplicate
+        while fOveride == 1:
+            reset = input("Table already created... Overide? (Y/n)")
+            print(reset)
+            reset.lower()
+            if reset == 'y':
+                fOveride = 0
+                curs.execute("DROP TABLE IF EXISTS SENSOR_DATA")
+            elif reset != 'n':
+                print("<setup_db> ERROR: Improper input...")
+            else:
+                return
 
-    table = CREATE TABLE veles_data (
-      pname        varchar(25) not null, /* Plant Name */
-      pnumber      integer(2), /* Species - Sensor/Control */
-      cap          integer(3), /* Capacitance in Farads */
-      res          integer(4), /* Resistance in Ohms */
-      tempC        integer(3), /* Temperature in Celsius */
-      tempF        integer(3), /* Temperature in Fahrenheit */
-      currTime     time, /* Time that data was taken */
-      primary key (pnumber)
-    ); # Establishing table formating
+        table = """ CREATE TABLE sensor_data (
+                      pname        varchar(25) not null, /* Plant Name */
+                      pnumber      integer(2), /* Species - Sensor/Control */
+                      cap          integer(3), /* Capacitance in Farads */
+                      res          integer(4), /* Resistance in Ohms */
+                      tempC        integer(3), /* Temperature in Celsius */
+                      tempF        integer(3), /* Temperature in Fahrenheit */
+                      currTime     time, /* Time that data was taken */
+                      primary key (pnumber)
+                    ); """ # Establishing table formating
 
-    curs.execute(table)
-    print("Created table...")
-    conn.close()
+        curs.execute(table)
+        curs.close()
 
-    fOveride = 1
+    except sqlite3.Error as error:
+        print("<setup_db> ERROR: Something went wrong working with SQLite3..."
+            , error)
+
+    else:
+        print("<setup_db> : Created table...")
+        fOveride = 1
+
+    finally:
+        if conn:
+            conn.close()
+            print("<setup_db> : SQLite3 connection closed...")
 
 ################################################################################
 
 def convert_TXT_SQL(ard_list):
-    for ard in ard_list:
-        data = ard.readline()
-        plist = data.split("\t") # data from plant
-        i = 0 # counter variable
-        if len(plist) not 6:
-            print("ERROR: Invalid read from sensors...")
-            return
+    try:
+
+        ''' SQLite3 CONNECTION '''
+        conn = sqlite3.connect("veles_data.db")
+        curs = conn.cursor()
+        print("Attempting connection to SQLite3...\n")
+
+        ''' CREATE TIMESTAMP '''
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+
+        ''' COLLECTING DATA FROM SERIAL '''
+        data_list = []
+        for ard in ard_list:
+            data = ard.readline()
+            ard_data = data.split("\t") # data from plant
+
+            if len(ard_data) != 6: # Checks if all 6 expected values are present
+                print("ERROR: %s had invalid read from sensors at %s..."
+                    % (ard_data[0], current_time))
+                continue
+
+            ard_data.append(currTime)
+            data_list.append(tuple(ard_data))
 
 
+        ''' INSERT DATA INTO DATABASE '''
+        db_insert = """INSERT INTO sensor_data
+                    (pname, pnumber, cap, res, tempC, tempF, currTime)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);"""
+        curs.executemany(db_insert, data_list)
+        conn.commit()
+        curs.close()
 
-    # now = datetime.now()
-    # current_time = now.strftime("%H:%M:%S")
+    except sqlite3.Error as error:
+        print("<convert_TXT_SQL> ERROR: Something went wrong working with"
+        , "SQLite3...", error)
+
+    else:
+        print("<convert_TXT_SQL> : Successfully added data to table at %s"
+            % currTime)
+
+    finally:
+        if conn:
+            conn.close()
+            print("<convert_TXT_SQL> : SQLite3 connection closed...")
+
 
 ################################################################################
-
-#  might not need this
-def write_data(ard):
-    pdata = []
-    pdata.append(ard.readline())
-
-    f = open("plant_data.txt", "a")
-    f.write(plant)
-    f.close()
-
-def convert_TXT_JSON(ard_list):
-    data_pts = ['pname', 'pnumber', 'cap', 'res', 'C', 'F', 'time']
-    pdict = {}
-
-    for ard in ard_list:
-        data = ard.readline()
-        plist = data.split("\t") # data from plant
-        i = 0 # counter variable
-        while (i < len(data_pts)):
-            # pdict[] =
 
 if __name__ == "__main__":
     main()
