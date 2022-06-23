@@ -9,13 +9,18 @@ from datetime import datetime
 # hu_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 2
 # so_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 3
 # si_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 4
+# arduino_list = [ha_ard, hu_ard, so_ard, si_ard]
 
 # Flag Variables
-fOveride = 0;
+fOveride = True;
 
 ################################################################################
 
 def main():
+    # Commented code should work if proper serial ports are entered for Arduinos
+    # setup_db()
+    # while True:
+    #     convert_TXT_SQL(arduino_list)
     print("<main> : Ran code")
 
 ################################################################################
@@ -29,12 +34,12 @@ def setup_db():
 
         ''' CREATING TABLE '''
         # Get rid of possible duplicate
-        while fOveride == 1:
+        while fOveride == False:
             reset = input("Table already created... Overide? (Y/n)")
             print(reset)
             reset.lower()
             if reset == 'y':
-                fOveride = 0
+                fOveride = True
                 curs.execute("DROP TABLE IF EXISTS SENSOR_DATA")
             elif reset != 'n':
                 print("<setup_db> ERROR: Improper input...")
@@ -117,7 +122,6 @@ def convert_TXT_SQL(ard_list):
         if conn:
             conn.close()
             print("<convert_TXT_SQL> : SQLite3 connection closed...")
-
 
 ################################################################################
 
