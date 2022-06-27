@@ -50,7 +50,10 @@ def setup_db():
                       pname        varchar(25) not null, /* Plant Name */
                       pnumber      integer(2), /* Species - Sensor/Control */
                       cap          integer(3), /* Capacitance in Farads */
+                      percH20      integer(2), /* Percent of Water */
+                      moisStat     varchar(7), /* Plant Moisture Status */
                       res          integer(4), /* Resistance in Ohms */
+                      lum          integer(4), /* Lumens */
                       tempC        integer(3), /* Temperature in Celsius */
                       tempF        integer(3), /* Temperature in Fahrenheit */
                       currTime     time, /* Time that data was taken */
@@ -104,8 +107,9 @@ def convert_TXT_SQL(ard_list):
 
         ''' INSERT DATA INTO DATABASE '''
         db_insert = """INSERT INTO sensor_data
-                    (pname, pnumber, cap, res, tempC, tempF, currTime)
-                    VALUES (?, ?, ?, ?, ?, ?, ?);"""
+                    (pname, pnumber, cap, percH20, moisStat, res, lum
+                        , tempC, tempF, currTime)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
         curs.executemany(db_insert, data_list)
         conn.commit()
         curs.close()
