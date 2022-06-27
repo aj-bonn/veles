@@ -15,6 +15,9 @@ String name = "Hugo";
 int pnum = 10;
 bool printemp = false;
 
+//Recurring variables
+int cap, percMois, res;
+
 // Prototypes
 void print_Temp(DeviceAddress addy);
 
@@ -26,28 +29,51 @@ void setup() {
 
 void loop() {
   if (printemp == true) {
-      // PLANT INFO
+      /* PLANT INFO */
       Serial.print(name);
       Serial.print("\t");
       Serial.print(pnum);
       Serial.print("\t");
-      // Take time using Python
       
-      // SENSOR DATA
-      Serial.print(analogRead(A0)); // Capacitance
-      Serial.print("\t");
-      Serial.print(analogRead(A1)); // Resistance
+      /* SENSOR DATA */
+      // Moisture Sensor //
+      // capacitance...
+      cap = analogRead(A0)
+      Serial.print(cap); 
       Serial.print("\t");
       
+      // percent of water...
+      Serial.print("Perc") //need to do a calculation
+      Serial.print("\t");
+      
+      // soil moisture status...
+      if (cap > 430) {
+        Serial.print("Dry");
+        }
+      else if (cap > 350) {
+        Serial.print("Wet");
+        }
+      else {
+        Serial.print("Water");
+        }
+      Serial.print("\t");
+
+      // Light Sensor //
+      // resistance...
+      res = analogRead(A1);
+      Serial.print(res); 
+      Serial.print("\t");
+
+      // Temperature Sensor //
       temp_sensor.requestTemperatures();
       Serial.print(temp_sensor.getTempCByIndex(0)); // Temperature in Celsius
       Serial.print("\t");
       Serial.println((temp_sensor.getTempCByIndex(0) * 9.0) / 5.0 + 32.0); // Temperature in Fahrenheit
       
-      // Takes data every 1/2 hour
+      /* TAKE DATA EVERY 1/2 HR */S
       delay(1800000);
     }
-   else {
+   else { // Fixes issue where data is not taken from temperature sensor at first run
       delay(500);
       printemp = true;
     }
