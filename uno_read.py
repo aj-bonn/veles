@@ -1,11 +1,11 @@
 import serial
 import time
+import schedule
 from datetime import datetime
 
 
-# Arduino Variables
-# ha_ard = serial.Serial(port = '/dev/cu.usbmodem1301', baudrate = 9600,
-# timeout = 0.1) # Arduino 1
+# Arduino Variables – input port
+# ha_ard = serial.Serial(port = '/dev/cu.usbmodem1301', baudrate = 9600, timeout = 0.1)
 # hu_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 2
 # so_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 3
 # si_ard = serial.Serial(port = '', baudrate = 9600, timeout = 0.1) # Arduino 4
@@ -16,12 +16,30 @@ fOveride = True;
 
 ################################################################################
 
+# code must be ran using nohup python3 uno_read.py &
+
 def main():
-    # Commented code should work if proper serial ports are entered for Arduinos
-    # setup_db()
-    # while True:
-    #     convert_TXT_SQL(arduino_list)
-    print("<main> : Ran code")
+    print("<main> : Beginning code...")
+
+    while True:
+        print("<main> : Would you like to setup the data table? <Y/n>")
+        table_set = input()
+        table_set = lower(table_set)
+
+        if table_set == 'y':
+            setup_db()
+            break
+        elif table_set == 'n':
+            break
+        else:
+            print("<main> ERROR: Improper input, please try again...")
+
+    schedule.every().hour.at(":00").do(convert_TXT_SQL)
+    schedule.every().hour.at(":30").do(convert_TXT_SQL)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 ################################################################################
 
@@ -78,13 +96,12 @@ def setup_db():
 
 ################################################################################
 
-def convert_TXT_SQL(ard_list):
+def convert_TXT_SQL():
     try:
-
         ''' SQLite3 CONNECTION '''
         conn = sqlite3.connect("veles_data.db")
         curs = conn.cursor()
-        print("Attempting connection to SQLite3...\n")
+        print("<convert_TXT_SQL> : Attempting connection to SQLite3...")
 
         ''' CREATE TIMESTAMP '''
         now = datetime.now()
@@ -92,12 +109,12 @@ def convert_TXT_SQL(ard_list):
 
         ''' COLLECTING DATA FROM SERIAL '''
         data_list = []
-        for ard in ard_list:
+        for ard in arduino_list:
             data = ard.readline()
             ard_data = data.split("\t") # data from plant
 
             if len(ard_data) != 6: # Checks if all 6 expected values are present
-                print("ERROR: %s had invalid read from sensors at %s..."
+                print("<convert_TXT_SQL> ERROR: %s had invalid read from sensors at %s..."
                     % (ard_data[0], current_time))
                 continue
 

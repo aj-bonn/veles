@@ -34,18 +34,18 @@ void loop() {
       Serial.print("\t");
       Serial.print(pnum);
       Serial.print("\t");
-      
+
       /* SENSOR DATA */
       // Moisture Sensor //
       // capacitance...
       cap = analogRead(A0)
-      Serial.print(cap); 
+      Serial.print(cap);
       Serial.print("\t");
-      
+
       // percent of water...
       Serial.print("Perc") //need to do a calculation
       Serial.print("\t");
-      
+
       // soil moisture status...
       if (cap > 430) {
         Serial.print("Dry");
@@ -61,7 +61,7 @@ void loop() {
       // Light Sensor //
       // resistance...
       res = analogRead(A1);
-      Serial.print(res); 
+      Serial.print(res);
       Serial.print("\t");
 
       // Temperature Sensor //
@@ -69,13 +69,13 @@ void loop() {
       Serial.print(temp_sensor.getTempCByIndex(0)); // Temperature in Celsius
       Serial.print("\t");
       Serial.println((temp_sensor.getTempCByIndex(0) * 9.0) / 5.0 + 32.0); // Temperature in Fahrenheit
-      
-      /* TAKE DATA EVERY 1/2 HR */S
-      delay(1800000);
+
+      /* DATA SENT OUT EVERY MINUTE */
+      delay(60000); // so that in the future python script can be used to pull real-time data
     }
    else { // Fixes issue where data is not taken from temperature sensor at first run
       delay(500);
       printemp = true;
     }
-  
+
 }
