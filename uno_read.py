@@ -8,12 +8,13 @@ from datetime import datetime
 # Arduino Variables – input port
 ha_ard = serial.Serial(port = '/dev/ttyACM0', baudrate = 9600, timeout = 0.1)
 hu_ard = serial.Serial(port = '/dev/ttyACM1', baudrate = 9600, timeout = 0.1)
-so_ard = serial.Serial(port = '/dev/ttyACM2', baudrate = 9600, timeout = 0.1)
-si_ard = serial.Serial(port = '/dev/ttyACM3', baudrate = 9600, timeout = 0.1)
-arduino_list = [ha_ard, hu_ard, so_ard, si_ard]
+#so_ard = serial.Serial(port = '/dev/ttyACM2', baudrate = 9600, timeout = 0.1)
+#si_ard = serial.Serial(port = '/dev/ttyACM3', baudrate = 9600, timeout = 0.1)
+# arduino_list = [ha_ard, hu_ard, so_ard, si_ard]
+arduino_list = [ha_ard, hu_ard]
 
 # Flag Variables
-fOveride = True;
+fOveride = False;
 
 ################################################################################
 
