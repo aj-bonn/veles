@@ -1,3 +1,4 @@
+import sqlite3
 import serial
 import time
 import schedule
@@ -24,7 +25,7 @@ def main():
     while True:
         print("<main> : Would you like to setup the data table? <Y/n>")
         table_set = input()
-        table_set = lower(table_set)
+        table_set = table_set.lower()
 
         if table_set == 'y':
             setup_db()
@@ -44,6 +45,8 @@ def main():
 ################################################################################
 
 def setup_db():
+    global fOveride
+    
     try:
         ''' SQLite3 CONNECTION '''
         conn = sqlite3.connect("veles_data.db")
@@ -97,6 +100,8 @@ def setup_db():
 ################################################################################
 
 def convert_TXT_SQL():
+    global arduino_list
+    
     try:
         ''' SQLite3 CONNECTION '''
         conn = sqlite3.connect("veles_data.db")

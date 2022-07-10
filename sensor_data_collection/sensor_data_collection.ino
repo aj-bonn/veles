@@ -1,6 +1,7 @@
 // Including necessary libraries
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <Arduino.h>
 
 // Defining necessary variables
 #define ONE_WIRE_BUS 2
@@ -38,12 +39,12 @@ void loop() {
       /* SENSOR DATA */
       // Moisture Sensor //
       // capacitance...
-      cap = analogRead(A0)
+      cap = analogRead(A0);
       Serial.print(cap);
       Serial.print("\t");
 
       // percent of water...
-      Serial.print("Perc") //need to do a calculation
+      Serial.print("Perc"); //need to do a calculation
       Serial.print("\t");
 
       // soil moisture status...
@@ -79,3 +80,4 @@ void loop() {
     }
 
 }
+
