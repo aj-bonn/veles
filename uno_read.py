@@ -36,7 +36,7 @@ def main():
         else:
             print("<main> ERROR: Improper input, please try again...")
 
-    schedule.every().hour.at(":00").do(convert_TXT_SQL)
+    schedule.every().hour.at(":43").do(convert_TXT_SQL)
     schedule.every().hour.at(":30").do(convert_TXT_SQL)
 
     while True:
@@ -111,13 +111,13 @@ def convert_TXT_SQL():
 
         ''' CREATE TIMESTAMP '''
         now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
+        curr_time = now.strftime("%H:%M:%S")
 
         ''' COLLECTING DATA FROM SERIAL '''
         data_list = []
         for ard in arduino_list:
             data = ard.readline()
-            ard_data = data.split("\t") # data from plant
+            ard_data = str(data, 'ascii').split("\t") # data from plant
 
             if len(ard_data) != 6: # Checks if all 6 expected values are present
                 print("<convert_TXT_SQL> ERROR: %s had invalid read from sensors at %s..."
