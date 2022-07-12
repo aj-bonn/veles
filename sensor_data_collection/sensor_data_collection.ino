@@ -12,12 +12,16 @@ DallasTemperature temp_sensor(&oneWire);
 DeviceAddress insideThermometer;
 
 //Plant Info
-String name = "Hugo";
+String name = "Hugo"; //change for each plant
 int pnum = 10;
 bool printemp = false;
 
 //Recurring variables
-int cap, percMois, res;
+int cap, res;
+
+//Constants
+int AIR_VAL = 490;
+int WATER_VAL = 350;
 
 // Prototypes
 void print_Temp(DeviceAddress addy);
@@ -44,7 +48,8 @@ void loop() {
       Serial.print("\t");
 
       // percent of water...
-      Serial.print("Perc"); //need to do a calculation
+      int percMois = map(cap, AIR_VAL, WATER_VAL, 0, 100);
+      Serial.print(percMois); //need to do a calculation
       Serial.print("\t");
 
       // soil moisture status...
@@ -65,6 +70,11 @@ void loop() {
       Serial.print(res);
       Serial.print("\t");
 
+      // lux...
+      float lux = 500.0/res;
+      Serial.print(lux); //need to do a calculation
+      Serial.print("\t");
+
       // Temperature Sensor //
       temp_sensor.requestTemperatures();
       Serial.print(temp_sensor.getTempCByIndex(0)); // Temperature in Celsius
@@ -72,7 +82,8 @@ void loop() {
       Serial.println((temp_sensor.getTempCByIndex(0) * 9.0) / 5.0 + 32.0); // Temperature in Fahrenheit
 
       /* DATA SENT OUT EVERY MINUTE */
-      delay(60000); // so that in the future python script can be used to pull real-time data
+      delay(5000);
+      //delay(60000); // so that in the future python script can be used to pull real-time data
     }
    else { // Fixes issue where data is not taken from temperature sensor at first run
       delay(500);
@@ -80,4 +91,3 @@ void loop() {
     }
 
 }
-
