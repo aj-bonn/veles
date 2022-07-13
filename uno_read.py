@@ -36,8 +36,10 @@ def main():
         else:
             print("<main> ERROR: Improper input, please try again...")
 
-    schedule.every().hour.at(":16").do(convert_TXT_SQL)
+    schedule.every().hour.at(":00").do(convert_TXT_SQL)
     schedule.every().hour.at(":15").do(convert_TXT_SQL)
+    schedule.every().hour.at(":30").do(convert_TXT_SQL)
+    schedule.every().hour.at(":45").do(convert_TXT_SQL)
     print("<main> : Schedule set...")
 
     print("<main> : Beginning data collection...")
@@ -81,6 +83,7 @@ def setup_db():
                       lux          float(10) not null, /* Lumens */
                       tempC        float(4), /* Temperature in Celsius */
                       tempF        float(4), /* Temperature in Fahrenheit */
+                      currDate     , /* Date that the data was taken */
                       currTime     time /* Time that data was taken */
                     ); """ # Establishing table formating
 
@@ -114,7 +117,7 @@ def convert_TXT_SQL():
 
         ''' CREATE TIMESTAMP '''
         now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
+        current_time = now.strftime("%m/%d/%Y, %H:%M:%S")
 
         ''' COLLECTING DATA FROM SERIAL '''
         data_list = []

@@ -12,7 +12,7 @@ DallasTemperature temp_sensor(&oneWire);
 DeviceAddress insideThermometer;
 
 //Plant Info
-String name = "Hugo"; //change for each plant
+String name = "Halle"; //change for each plant
 int pnum = 10;
 bool printemp = false;
 
@@ -20,7 +20,7 @@ bool printemp = false;
 int cap, res;
 
 //Constants
-int AIR_VAL = 490;
+int AIR_VAL = 600;
 int WATER_VAL = 350;
 
 // Prototypes
@@ -44,6 +44,7 @@ void loop() {
       // Moisture Sensor //
       // capacitance...
       cap = analogRead(A0);
+      cap -= 35;
       Serial.print(cap);
       Serial.print("\t");
 
@@ -67,6 +68,7 @@ void loop() {
       // Light Sensor //
       // resistance...
       res = analogRead(A1);
+      res += 37;
       Serial.print(res);
       Serial.print("\t");
 
@@ -77,9 +79,9 @@ void loop() {
 
       // Temperature Sensor //
       temp_sensor.requestTemperatures();
-      Serial.print(temp_sensor.getTempCByIndex(0)); // Temperature in Celsius
+      Serial.print(temp_sensor.getTempCByIndex(0) + 1.2); // Temperature in Celsius
       Serial.print("\t");
-      Serial.println((temp_sensor.getTempCByIndex(0) * 9.0) / 5.0 + 32.0); // Temperature in Fahrenheit
+      Serial.println(((temp_sensor.getTempCByIndex(0) + 1.2) * 9.0) / 5.0 + 32.0); // Temperature in Fahrenheit
 
       /* DATA SENT OUT EVERY MINUTE */
       delay(5000);
