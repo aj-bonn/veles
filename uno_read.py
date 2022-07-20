@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sqlite3
 import serial
 import time
@@ -5,18 +6,13 @@ import schedule
 from datetime import datetime
 from threading import Thread
 
-
-# Arduino Variables – input port
-ha_ard = serial.Serial(port = '/dev/cu.usbmodem1201', baudrate = 9600, timeout = 0.1)
-# ha_ard = serial.Serial(port = '/dev/ttyACM0', baudrate = 9600, timeout = 0.1)
-# hu_ard = serial.Serial(port = '/dev/ttyACM1', baudrate = 9600, timeout = 0.1)
-# so_ard = serial.Serial(port = '/dev/ttyACM2', baudrate = 9600, timeout = 0.1)
-# si_ard = serial.Serial(port = '/dev/ttyACM3', baudrate = 9600, timeout = 0.1)
-arduino_list = [ha_ard] #, hu_ard, so_ard, si_ard
+# Arduino Variables
+arduino_list = []
 
 # Other Variables
 fOveride = False;
 last_received = ''
+
 
 ################################################################################
 
@@ -36,10 +32,10 @@ def main():
         else:
             print("<main> ERROR: Improper input, please try again...")
 
-    schedule.every().hour.at(":00").do(convert_TXT_SQL)
-    schedule.every().hour.at(":15").do(convert_TXT_SQL)
-    schedule.every().hour.at(":30").do(convert_TXT_SQL)
-    schedule.every().hour.at(":45").do(convert_TXT_SQL)
+    schedule.every().hour.at(":59").do(convert_TXT_SQL)
+    schedule.every().hour.at(":14").do(convert_TXT_SQL)
+    schedule.every().hour.at(":29").do(convert_TXT_SQL)
+    schedule.every().hour.at(":44").do(convert_TXT_SQL)
     print("<main> : Schedule set...")
 
     print("<main> : Beginning data collection...")
@@ -62,8 +58,7 @@ def setup_db():
         ''' CREATING TABLE '''
         # Get rid of possible duplicate
         while fOveride == False:
-            reset = input("Table already created... Overide? (Y/n): ")
-            print(reset)
+            reset = input("<setup_db> : Table already created... Overide? (Y/n): ")
             reset.lower()
             if reset == 'y':
                 fOveride = True
@@ -83,7 +78,6 @@ def setup_db():
                       lux          float(10) not null, /* Lumens */
                       tempC        float(4), /* Temperature in Celsius */
                       tempF        float(4), /* Temperature in Fahrenheit */
-                      currDate     , /* Date that the data was taken */
                       currTime     time /* Time that data was taken */
                     ); """ # Establishing table formating
 
@@ -115,18 +109,22 @@ def convert_TXT_SQL():
         curs = conn.cursor()
         print("<convert_TXT_SQL> : Attempting connection to SQLite3...")
 
+        ''' CONNECT TO ARDUINO(S) '''
+        print("<convert_TXT_SQL> : Connecting to arduino(s)...")
+        connect_ards()
+        time.sleep(60) #take a minute of data
+        print("<convert_TXT_SQL> : Taking data from arduino(s)...")
+
         ''' CREATE TIMESTAMP '''
         now = datetime.now()
         current_time = now.strftime("%m/%d/%Y, %H:%M:%S")
 
         ''' COLLECTING DATA FROM SERIAL '''
         data_list = []
-        for ard in arduino_list:
-            # Thread(target=receiving, args=(ard,)).start()
-            # sdata = last_received
-            sdata = readLastLine(ard)
+        for ard in range(4):
+            sdata = readLastLine(arduino_list[ard])
+
             ard_data = sdata.split('\t')
-            # ard_data = str(data, 'ascii').split("\t") # data from plant
 
             if len(ard_data) != 9: # Checks if all 6 expected values are present
                 print("<convert_TXT_SQL> ERROR: %s had invalid read from sensors at %s..."
@@ -138,13 +136,15 @@ def convert_TXT_SQL():
                 ard_data[5] = int(ard_data[5])
                 ard_data[6] = float(ard_data[6])
                 ard_data[7] = float(ard_data[7])
-                ard_data[8] = float(ard_data[8][0:6])
-
+                ard_data[8] = float(ard_data[8][:-2])
             ard_data.append(current_time)
+
+            print("<convert_TXT_SQL> : Listing data taken from %s at %s... "
+                % (ard_data[0], current_time))
             print(ard_data)
 
             data_list.append(tuple(ard_data))
-
+        disconnect_ards()
 
         ''' INSERT DATA INTO DATABASE '''
         db_insert = """INSERT INTO sensor_data
@@ -170,27 +170,39 @@ def convert_TXT_SQL():
 
 ################################################################################
 
-def receiving(ser):
-    global last_received
+def connect_ards():
+    global arduino_list
+    ard1 = serial.Serial(port = '/dev/ttyACM0', baudrate = 9600, timeout = 1.5)
+    ard2 = serial.Serial(port = '/dev/ttyACM1', baudrate = 9600, timeout = 1.5)
+    ard3 = serial.Serial(port = '/dev/ttyACM2', baudrate = 9600, timeout = 1.5)
+    ard4 = serial.Serial(port = '/dev/ttyACM3', baudrate = 9600, timeout = 1.5)
+    arduino_list = [ard1, ard2, ard3, ard4] #ard1, ard2, ard3, ard4
 
-    buffer_string = ''
-    while True:
-        rdata = ser.readline(ser.inWaiting())
-        buffer_string = buffer_string + rdata.decode('utf-8')
-        if '\n' in buffer_string:
-            lines = buffer_string.split('\n')
-            last_received = lines[-2]
-            buffer_string = lines[-1]
+    ''' For testing the arduinos '''
+    # ard1 = serial.Serial(port = '/dev/cu.usbmodem1201', baudrate = 9600, timeout = 0.1)
+    # ard2 = serial.Serial(port = '/dev/cu.usbmodem1301', baudrate = 9600, timeout = 0.1)
+    # arduino_list = [ard1, ard2]
+
+################################################################################
+
+def disconnect_ards():
+    global arduino_list
+    for ard in arduino_list:
+        ard.close()
 
 ################################################################################
 
 def readLastLine(ser):
     last_data = ''
+    seclast_data = ''
     while True:
         data = ser.readline()
-        data = data.decode('utf-8')
+        data = data.decode('ISO-8859-1')
         if data != '':
             last_data = data
+            seclast_data = last_data
+        elif (len(last_data.split('\t')) != 9):
+            return seclast_data
         else:
             return last_data
 
